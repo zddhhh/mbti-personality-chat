@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MBTI Chat</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 选择页：只选性别和 MBTI -->
+  <div id="view-select" class="view active">
+    <div class="select-container">
+      <h1 class="select-title">遇见你的 AI 好友</h1>
+      <p class="select-subtitle">选择 TA 的性别和性格类型</p>
+
+      <div class="gender-selector">
+        <button class="gender-btn active" data-gender="male">
+          <span class="gender-icon">👦</span>
+          <span>男生</span>
+        </button>
+        <button class="gender-btn" data-gender="female">
+          <span class="gender-icon">👧</span>
+          <span>女生</span>
+        </button>
+      </div>
+
+      <div class="mbti-selector">
+        <div class="dimension">
+          <button class="dim-btn active" data-value="E">E<span>外向</span></button>
+          <button class="dim-btn" data-value="I">I<span>内向</span></button>
+        </div>
+        <div class="dimension">
+          <button class="dim-btn active" data-value="S">S<span>感觉</span></button>
+          <button class="dim-btn" data-value="N">N<span>直觉</span></button>
+        </div>
+        <div class="dimension">
+          <button class="dim-btn active" data-value="T">T<span>思考</span></button>
+          <button class="dim-btn" data-value="F">F<span>情感</span></button>
+        </div>
+        <div class="dimension">
+          <button class="dim-btn active" data-value="J">J<span>判断</span></button>
+          <button class="dim-btn" data-value="P">P<span>感知</span></button>
+        </div>
+      </div>
+
+      <button id="btn-find" class="btn-start">帮我找个好友</button>
+    </div>
+  </div>
+
+  <!-- 加载过渡页 -->
+  <div id="view-loading" class="view">
+    <div class="loading-container">
+      <div class="loading-animation">
+        <div class="loading-circle"></div>
+        <div class="loading-circle delay-1"></div>
+        <div class="loading-circle delay-2"></div>
+      </div>
+      <p class="loading-text">正在寻找适合你的 AI 契合好友</p>
+      <p class="loading-subtext" id="loading-hint">分析性格匹配中...</p>
+    </div>
+  </div>
+
+  <!-- 聊天页 -->
+  <div id="view-chat" class="view">
+    <div class="wechat-chat">
+      <header class="wechat-header">
+        <button id="btn-back" class="wechat-back">‹</button>
+        <span id="header-name" class="wechat-title"></span>
+        <button id="btn-more" class="wechat-more">⋯</button>
+      </header>
+
+      <div id="messages" class="wechat-messages"></div>
+
+      <div class="wechat-footer">
+        <button id="btn-emoji" class="wechat-emoji-btn" title="表情">😊</button>
+        <textarea id="input" class="wechat-input" placeholder="输入消息" rows="1"></textarea>
+        <button id="btn-send" class="wechat-send">发送</button>
+      </div>
+
+      <div id="emoji-panel" class="emoji-panel hidden"></div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=3"></script>
+</body>
+</html>
