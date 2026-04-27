@@ -1,10 +1,13 @@
-const PROXY_URL = 'http://localhost:8787';
+// Auto-detect: use local proxy in dev, Vercel API in production
+const API_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:8787'
+  : '/api/chat';
 
 /**
- * 发送聊天请求（非流式，一次性返回完整回复）
+ * 发送聊天请求（非流式）
  */
 export async function sendChat(messages) {
-  const response = await fetch(PROXY_URL, {
+  const response = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model: 'qwen-plus', messages, stream: false }),
