@@ -1,52 +1,136 @@
-# MBTI Personality Chat
+# MBTI AI Chat
 
-基于 MBTI 人格类型的智能对话网页。用户输入自己的 MBTI 类型后，系统动态生成匹配的人格化聊天智能体，模拟真实人类性格对应的聊天方式。
+An AI-powered chat app where you talk to virtual friends with distinct MBTI personalities. Each AI character behaves, responds, and even sends "moments" based on their personality type.
 
-## 技术架构
+## Features
 
-- **前端**：原生 HTML + CSS + JS（ES Module），零构建
-- **后端代理**：Cloudflare Worker（注入 API Key，转发请求）
-- **LLM**：通义千问（DashScope 兼容模式）
-- **存储**：IndexedDB（本地浏览器存储）
-- **部署**：GitHub Pages（前端）+ Cloudflare Worker（API 代理）
+- **16 MBTI Personalities** - Each AI friend has unique behavior patterns, language style, and emotional responses based on their MBTI type
+- **Memory System** - AI remembers facts, preferences, and events from your conversations
+- **Relationship Progression** - Stranger → Acquaintance → Friend → Close Friend, with intimacy and affection tracking
+- **Proactive Messaging** - AI friends may message you first (extroverts more often than introverts)
+- **AI-Generated Avatars** - Characters generate their own profile pictures using text-to-image AI
+- **Moments/Timeline** - AI friends post to their "moments" and interact with yours
+- **Image Sharing** - AI can search and send relevant images during conversation
+- **Multi-message Replies** - AI can send multiple messages in sequence, simulating real chat patterns
+- **Zero Build** - Pure HTML + CSS + JS (ES Modules), no bundler needed
 
-## 目录结构
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Vanilla HTML/CSS/JS (ES Modules) |
+| Backend Proxy | Cloudflare Pages Functions |
+| LLM | Qwen (DashScope compatible API) |
+| Image Generation | Wanx 2.6 (text-to-image) |
+| Storage | IndexedDB (browser-local) |
+| Deployment | Cloudflare Pages / Vercel |
+
+## Project Structure
 
 ```
 personality/
-├── site/              # 前端静态文件 → GitHub Pages
-│   ├── index.html     # 单页入口
-│   ├── css/style.css  # 全局样式
+├── site/                  # Frontend static files
+│   ├── index.html         # Single-page app entry
+│   ├── css/style.css      # Global styles
+│   ├── img/               # Static images
 │   └── js/
-│       ├── app.js     # 主控：路由、页面切换
-│       ├── chat.js    # 聊天核心：消息收发/流式渲染
-│       ├── mbti.js    # MBTI prompt 动态生成
-│       ├── storage.js # IndexedDB 封装
-│       └── api.js     # Worker 通信层
-└── worker/
-    └── index.js       # Cloudflare Worker 代理脚本
+│       ├── app.js         # Router & page transitions
+│       ├── chat.js        # Chat engine: messaging, streaming, command parsing
+│       ├── agent.js       # AI brain: memory, relationships, proactive messages
+│       ├── mbti.js        # MBTI personality engine & prompt generation
+│       ├── storage.js     # IndexedDB wrapper (v5)
+│       ├── emoji.js       # Emoji picker
+│       └── api.js         # API communication layer
+├── functions/api/         # Cloudflare Pages Functions
+│   ├── chat.js            # Chat proxy (injects API key, forwards to LLM)
+│   └── avatar.js          # Avatar generation proxy (text-to-image)
+├── worker/                # Alternative: Cloudflare Worker deployment
+│   ├── index.js           # Worker proxy script
+│   ├── wrangler.toml      # Wrangler config
+│   └── .dev.vars.example  # Environment variables template
+├── api/                   # Alternative: Vercel serverless function
+│   └── chat.js
+├── architecture.md        # Detailed system architecture diagram
+├── vercel.json            # Vercel deployment config
+└── LICENSE                # MIT License
 ```
 
-## 本地开发
+## Getting Started
 
-前端是纯静态文件，任意 HTTP 服务器即可：
+### Prerequisites
+
+- A DashScope API key (for Qwen LLM access)
+- Node.js (for local dev server and Wrangler CLI)
+
+### Local Development
+
+1. Clone the repo:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/mbti-ai-chat.git
+cd mbti-ai-chat
+```
+
+2. Start a local server for the frontend:
 
 ```bash
 cd site
 npx serve .
 ```
 
-## 部署
+3. Set up the API proxy (choose one):
 
-1. 前端：将 `site/` 目录部署到 GitHub Pages
-2. Worker：使用 Cloudflare Wrangler CLI 部署
+**Option A: Cloudflare Pages Functions (recommended)**
+
+```bash
+cp worker/.dev.vars.example worker/.dev.vars
+# Edit .dev.vars and add your DashScope API key
+npx wrangler pages dev site --binding API_KEY=sk-your-key-here
+```
+
+**Option B: Cloudflare Worker**
 
 ```bash
 cd worker
-wrangler deploy
-wrangler secret put API_KEY  # 注入通义千问 API Key
+npm install
+cp .dev.vars.example .dev.vars
+# Edit .dev.vars and add your API key
+wrangler dev
 ```
 
-## 创建日期
+**Option C: Vercel**
 
-2026-04-27
+```bash
+vercel dev
+```
+
+### Deployment
+
+**Cloudflare Pages:**
+
+```bash
+# Deploy frontend + functions
+npx wrangler pages deploy site --project-name mbti-ai-chat
+# Set API key as secret
+npx wrangler pages secret put API_KEY --project-name mbti-ai-chat
+```
+
+**Vercel:**
+
+```bash
+vercel --prod
+# Set environment variable API_KEY in Vercel dashboard
+```
+
+## Architecture
+
+See [architecture.md](architecture.md) for a detailed system architecture diagram covering:
+
+- 4-layer System Prompt construction (personality + user context + long-term memory + relationship state)
+- Agent brain (memory extraction, relationship progression, proactive messaging)
+- Command system (`||SPLIT||`, `||AVATAR:x||`, `||MOMENT:x||`, `||IMAGE:x||`)
+- Full data flow for a single conversation turn
+
+## License
+
+[MIT](LICENSE)

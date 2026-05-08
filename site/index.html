@@ -7,13 +7,74 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- 选择页：只选性别和 MBTI -->
-  <div id="view-select" class="view active">
-    <div class="select-container">
-      <h1 class="select-title">遇见你的 AI 好友</h1>
-      <p class="select-subtitle">选择 TA 的性别和性格类型</p>
+  <!-- 第一页：首页引导 -->
+  <div id="view-landing" class="view active">
+    <div class="landing-container">
+      <div class="landing-hero">
+        <h1 class="landing-title">MBTI AI 好友</h1>
+        <p class="landing-desc">选择一个 AI 人格，开始真实的对话体验</p>
+      </div>
 
-      <div class="gender-selector">
+      <!-- 代言人 -->
+      <div class="spokesperson">
+        <img class="spokesperson-avatar" src="img/xifeng.jpg" alt="熙凤">
+        <div class="spokesperson-info">
+          <span class="spokesperson-signature">熙凤</span>
+          <span class="spokesperson-tag">K歌冠军 · 代言</span>
+        </div>
+      </div>
+
+      <!-- 全站数据看板 -->
+      <div class="stats-board">
+        <div class="stat-item">
+          <span id="stat-users" class="stat-number">0</span>
+          <span class="stat-label">用户加入</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span id="stat-matches" class="stat-number">0</span>
+          <span class="stat-label">成功配对</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span id="stat-messages" class="stat-number">0</span>
+          <span class="stat-label">消息发送</span>
+        </div>
+      </div>
+
+      <div class="landing-features">
+        <div class="feature-item">
+          <span class="feature-icon">🧠</span>
+          <span class="feature-text">16 种 MBTI 性格 AI</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">💬</span>
+          <span class="feature-text">真人节奏对话</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📷</span>
+          <span class="feature-text">朋友圈互动</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🖼️</span>
+          <span class="feature-text">图片识别</span>
+        </div>
+      </div>
+
+      <button id="btn-to-ai-select" class="landing-next-btn">开始匹配 ↓</button>
+      <button id="btn-to-chat-list" class="landing-list-btn hidden">好友列表 →</button>
+    </div>
+  </div>
+
+  <!-- 第二页：选择 AI 的性格 -->
+  <div id="view-ai-select" class="view">
+    <div class="select-container">
+      <button id="btn-back-to-landing" class="page-back-btn">‹ 返回</button>
+      <h2 class="select-title">选择 TA 的人格</h2>
+      <p class="select-subtitle">选择你想聊天的 AI 性别和性格类型</p>
+
+      <p class="input-label">TA 的性别</p>
+      <div class="gender-selector" id="ai-gender-selector">
         <button class="gender-btn active" data-gender="male">
           <span class="gender-icon">👦</span>
           <span>男生</span>
@@ -24,7 +85,8 @@
         </button>
       </div>
 
-      <div class="mbti-selector">
+      <p class="input-label">TA 的 MBTI</p>
+      <div class="mbti-selector" id="ai-mbti-selector">
         <div class="dimension">
           <button class="dim-btn active" data-value="E">E<span>外向</span></button>
           <button class="dim-btn" data-value="I">I<span>内向</span></button>
@@ -43,7 +105,55 @@
         </div>
       </div>
 
-      <button id="btn-find" class="btn-start">帮我找个好友</button>
+      <p id="enfj-hint" class="enfj-hint hidden">选择 ENFJ 有机会匹配到代言人同款人格</p>
+      <button id="btn-to-user-profile" class="btn-start">下一步 →</button>
+    </div>
+  </div>
+
+  <!-- 第三页：填写用户个人资料 -->
+  <div id="view-user-profile" class="view">
+    <div class="select-container">
+      <button id="btn-back-to-ai-select" class="page-back-btn">‹ 返回</button>
+      <h2 class="select-title">关于你</h2>
+      <p class="select-subtitle">让 AI 认识真实的你</p>
+
+      <div class="user-input-group">
+        <input type="text" id="user-nickname" class="user-nickname-input" placeholder="你的昵称" maxlength="12" autocomplete="off">
+      </div>
+
+      <p class="input-label">你的性别</p>
+      <div class="gender-selector" id="user-gender-selector">
+        <button class="gender-btn active" data-gender="male">
+          <span class="gender-icon">👦</span>
+          <span>男生</span>
+        </button>
+        <button class="gender-btn" data-gender="female">
+          <span class="gender-icon">👧</span>
+          <span>女生</span>
+        </button>
+      </div>
+
+      <p class="input-label">你的 MBTI（可选）</p>
+      <div class="mbti-selector" id="user-mbti-selector">
+        <div class="dimension">
+          <button class="dim-btn active" data-value="E">E<span>外向</span></button>
+          <button class="dim-btn" data-value="I">I<span>内向</span></button>
+        </div>
+        <div class="dimension">
+          <button class="dim-btn active" data-value="S">S<span>感觉</span></button>
+          <button class="dim-btn" data-value="N">N<span>直觉</span></button>
+        </div>
+        <div class="dimension">
+          <button class="dim-btn active" data-value="T">T<span>思考</span></button>
+          <button class="dim-btn" data-value="F">F<span>情感</span></button>
+        </div>
+        <div class="dimension">
+          <button class="dim-btn active" data-value="J">J<span>判断</span></button>
+          <button class="dim-btn" data-value="P">P<span>感知</span></button>
+        </div>
+      </div>
+
+      <button id="btn-find" class="btn-start">开始聊天</button>
     </div>
   </div>
 
@@ -60,19 +170,187 @@
     </div>
   </div>
 
+  <!-- 会话列表页 -->
+  <div id="view-chat-list" class="view">
+    <div class="chatlist-wrapper">
+      <header class="chatlist-header">
+        <span class="chatlist-title">消息</span>
+        <button id="btn-new-match" class="chatlist-new-btn">+ 新好友</button>
+      </header>
+      <div id="chat-list" class="chat-list"></div>
+    </div>
+  </div>
+
   <!-- 聊天页 -->
   <div id="view-chat" class="view">
     <div class="wechat-chat">
       <header class="wechat-header">
         <button id="btn-back" class="wechat-back">‹</button>
-        <span id="header-name" class="wechat-title"></span>
+        <div class="header-center">
+          <span id="header-name" class="wechat-title"></span>
+          <span id="header-mbti" class="mbti-badge"></span>
+        </div>
         <button id="btn-more" class="wechat-more">⋯</button>
       </header>
 
+      <!-- 下拉菜单 -->
+      <div id="dropdown-menu" class="dropdown-menu hidden">
+        <button class="dropdown-item" data-action="profile">
+          <span class="dropdown-icon">👤</span>TA 的资料
+        </button>
+        <button class="dropdown-item" data-action="moments">
+          <span class="dropdown-icon">📷</span>TA 的朋友圈
+        </button>
+        <button class="dropdown-item" data-action="remark">
+          <span class="dropdown-icon">✏️</span>设置备注
+        </button>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item" data-action="clear">
+          <span class="dropdown-icon">🗑️</span>清空聊天记录
+        </button>
+        <button class="dropdown-item" data-action="rematch">
+          <span class="dropdown-icon">🔄</span>重新匹配
+        </button>
+      </div>
+
+      <!-- AI 资料面板 -->
+      <div id="profile-panel" class="profile-panel hidden">
+        <div class="profile-card">
+          <div class="profile-header">
+            <img id="profile-avatar" class="profile-avatar" alt="">
+            <div class="profile-info">
+              <span id="profile-name" class="profile-name"></span>
+              <span id="profile-mbti-badge" class="mbti-badge"></span>
+            </div>
+          </div>
+          <div class="profile-details">
+            <div class="profile-row">
+              <span class="profile-label">性别</span>
+              <span id="profile-gender" class="profile-value"></span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label">性格</span>
+              <span id="profile-personality" class="profile-value"></span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label">关系</span>
+              <span id="profile-phase" class="profile-value"></span>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label">聊天次数</span>
+              <span id="profile-msg-count" class="profile-value"></span>
+            </div>
+            <div class="profile-row remark-row">
+              <span class="profile-label">备注</span>
+              <button id="profile-remark-btn" class="profile-remark-btn">
+                <span id="profile-remark-text">未设置</span>
+                <span class="remark-arrow">›</span>
+              </button>
+            </div>
+          </div>
+          <button id="btn-close-profile" class="profile-close">返回聊天</button>
+        </div>
+      </div>
+
+      <!-- 朋友圈面板 -->
+      <div id="moments-panel" class="moments-panel hidden">
+        <header class="moments-header">
+          <button id="btn-close-moments" class="wechat-back">‹</button>
+          <span class="moments-title">朋友圈</span>
+          <span></span>
+        </header>
+        <div class="moments-cover">
+          <img id="moments-avatar" class="moments-user-avatar" alt="">
+          <span id="moments-nickname" class="moments-username"></span>
+        </div>
+        <div id="moments-list" class="moments-list"></div>
+      </div>
+
+      <!-- 用户（自己）资料面板 -->
+      <div id="my-profile-panel" class="profile-panel hidden">
+        <div class="profile-card">
+          <div class="profile-header">
+            <img id="my-profile-avatar" class="profile-avatar" alt="">
+            <div class="profile-info">
+              <span id="my-profile-name" class="profile-name">未设置</span>
+            </div>
+          </div>
+          <div class="profile-details">
+            <div class="profile-row">
+              <span class="profile-label">昵称</span>
+              <button id="my-edit-nickname" class="profile-remark-btn">
+                <span id="my-nickname-text">点击设置</span>
+                <span class="remark-arrow">›</span>
+              </button>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label">个性签名</span>
+              <button id="my-edit-bio" class="profile-remark-btn">
+                <span id="my-bio-text">点击设置</span>
+                <span class="remark-arrow">›</span>
+              </button>
+            </div>
+            <div class="profile-row">
+              <span class="profile-label">MBTI</span>
+              <button id="my-edit-mbti" class="profile-remark-btn">
+                <span id="my-mbti-text">未设置</span>
+                <span class="remark-arrow">›</span>
+              </button>
+            </div>
+          </div>
+          <button id="btn-my-moments" class="profile-moments-btn">我的朋友圈 ›</button>
+          <button id="btn-close-my-profile" class="profile-close">返回聊天</button>
+        </div>
+      </div>
+
+      <!-- 用户朋友圈面板 -->
+      <div id="my-moments-panel" class="moments-panel hidden">
+        <header class="moments-header">
+          <button id="btn-close-my-moments" class="wechat-back">‹</button>
+          <span class="moments-title">我的朋友圈</span>
+          <button id="btn-new-moment" class="moment-publish-btn">+</button>
+        </header>
+        <div class="moments-cover">
+          <img id="my-moments-avatar" class="moments-user-avatar" alt="">
+          <span id="my-moments-nickname" class="moments-username"></span>
+        </div>
+        <div id="my-moments-list" class="moments-list"></div>
+      </div>
+
+      <!-- 发朋友圈弹窗 -->
+      <div id="moment-compose" class="modal-overlay hidden">
+        <div class="modal-card moment-compose-card">
+          <h3 class="modal-title">发朋友圈</h3>
+          <textarea id="moment-text" class="moment-textarea" placeholder="这一刻的想法..." rows="4"></textarea>
+          <div class="moment-compose-actions">
+            <button id="moment-add-image" class="moment-img-btn">🖼️ 添加图片</button>
+            <input type="file" id="moment-image-input" accept="image/*" hidden>
+            <div id="moment-image-preview" class="moment-img-preview hidden">
+              <img id="moment-preview-img" alt="">
+              <button id="moment-cancel-img" class="image-preview-cancel">&times;</button>
+            </div>
+          </div>
+          <div class="moment-compose-footer">
+            <button id="moment-cancel" class="modal-close moment-cancel-btn">取消</button>
+            <button id="moment-submit" class="modal-close moment-submit-btn">发布</button>
+          </div>
+        </div>
+      </div>
+
       <div id="messages" class="wechat-messages"></div>
+
+      <!-- 图片预览条 -->
+      <div id="image-preview" class="image-preview hidden">
+        <div class="image-preview-inner">
+          <img id="image-preview-img" class="image-preview-thumb" alt="">
+          <button id="btn-cancel-image" class="image-preview-cancel">&times;</button>
+        </div>
+      </div>
 
       <div class="wechat-footer">
         <button id="btn-emoji" class="wechat-emoji-btn" title="表情">😊</button>
+        <button id="btn-image" class="wechat-image-btn" title="图片">🖼️</button>
+        <input type="file" id="image-input" accept="image/*" hidden>
         <textarea id="input" class="wechat-input" placeholder="输入消息" rows="1"></textarea>
         <button id="btn-send" class="wechat-send">发送</button>
       </div>
@@ -81,6 +359,34 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js?v=3"></script>
+  <!-- 公告弹窗 -->
+  <div id="announcement-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">MBTI AI 好友 v5.0</h3>
+      <div class="modal-body">
+        <div class="modal-section modal-spokesperson">
+          <img class="modal-sp-avatar" src="img/xifeng.jpg" alt="">
+          <div class="modal-sp-info">
+            <span class="modal-sp-name">熙凤</span>
+            <span class="modal-sp-desc">K歌冠军 · 首席代言</span>
+          </div>
+        </div>
+        <div class="modal-section">
+          <p class="modal-label">v5.0 全新体验</p>
+          <ul class="modal-list">
+            <li>三步引导：首页 → 选 AI 人格 → 填写你的资料</li>
+            <li>自主选择 AI 的性别和 MBTI 类型</li>
+            <li>可以发图片给 AI，TA 能看懂图片内容</li>
+            <li>朋友圈互动 + 个人资料管理</li>
+            <li>E 人真人头像 / I 人插画头像</li>
+          </ul>
+        </div>
+        <p class="modal-tip">选 ENFJ 有机会匹配到代言人同款人格</p>
+      </div>
+      <button id="btn-close-modal" class="modal-close">知道了</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js?v=14"></script>
 </body>
 </html>
