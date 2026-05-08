@@ -1,12 +1,12 @@
-import { sendChat } from './api.js';
-import { addMessage, getMessagesBySession, getUserProfile, getSetting, setSetting, addAiMoment, updateSession, getSession, getUserMoments, getAiMoments } from './storage.js';
-import { generateSystemPrompt, buildAvatarUrl } from './mbti.js';
+import { sendChat } from './api.js?v=15';
+import { addMessage, getMessagesBySession, getUserProfile, getSetting, setSetting, addAiMoment, updateSession, getSession, getUserMoments, getAiMoments } from './storage.js?v=15';
+import { generateSystemPrompt, buildAvatarUrl } from './mbti.js?v=15';
 import {
   agentPreProcess, agentPostProcess,
   buildMemoryContext, buildRelationshipContext,
   shouldSendProactiveMessage, buildProactivePrompt,
   checkUserMomentsReaction, markProactiveSent,
-} from './agent.js';
+} from './agent.js?v=15';
 
 let currentSessionId = null;
 let currentMBTI = null;

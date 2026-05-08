@@ -1,4 +1,4 @@
-import { generateRandomProfile, generateAvatarPrompt, DIMENSIONS } from './mbti.js';
+import { generateRandomProfile, generateAvatarPrompt, DIMENSIONS } from './mbti.js?v=15';
 import {
   createSession, getSetting, setSetting,
   getMessagesBySession, getAgentState,
@@ -7,9 +7,9 @@ import {
   getAiMoments, getAllSessions, deleteSession,
   getLastMessageBySession,
   addMessage, getUnreadCount, markSessionRead,
-} from './storage.js';
-import { initChat, setupChatListeners, clearCurrentChat, setMyAvatarClickHandler, refreshUserAvatar, cleanupChat } from './chat.js';
-import { initEmojiPanel, togglePanel, closePanel } from './emoji.js';
+} from './storage.js?v=15';
+import { initChat, setupChatListeners, clearCurrentChat, setMyAvatarClickHandler, refreshUserAvatar, cleanupChat } from './chat.js?v=15';
+import { initEmojiPanel, togglePanel, closePanel } from './emoji.js?v=15';
 
 // --- Views ---
 const viewLanding = document.getElementById('view-landing');
