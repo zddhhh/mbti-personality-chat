@@ -38,7 +38,8 @@ export async function initChat(sessionId, mbti, gender, avatarUrl, nickname, spo
   if (proactiveTimer) { clearTimeout(proactiveTimer); proactiveTimer = null; }
   if (replyDebounceTimer) { clearTimeout(replyDebounceTimer); replyDebounceTimer = null; }
   isBusy = false;
-  chatEpoch++; // 使所有旧的异步回调失效
+  chatEpoch++;
+  console.log(`[initChat] new epoch=${chatEpoch} sessionId=${sessionId} mbti=${mbti}`);
 
   currentSessionId = sessionId;
   currentMBTI = mbti;
@@ -61,6 +62,7 @@ export async function initChat(sessionId, mbti, gender, avatarUrl, nickname, spo
 }
 
 function loadHistory(messages) {
+  console.log(`[loadHistory] session=${currentSessionId} msgCount=${messages.length}`);
   let lastTime = 0;
   messages.forEach((msg) => {
     if (msg.timestamp - lastTime > 5 * 60 * 1000) {
@@ -516,6 +518,10 @@ function appendMsg(side, content, forEpoch = null) {
   if (forEpoch !== null && forEpoch !== chatEpoch) {
     console.warn(`[appendMsg blocked] epoch ${forEpoch} vs current ${chatEpoch}`);
     return;
+  }
+  // DEBUG: 临时标记消息来源，方便排查串台
+  if (forEpoch !== null) {
+    console.log(`[appendMsg] epoch=${forEpoch} current=${chatEpoch} session=${currentSessionId} side=${side} content=${(content||'').substring(0,30)}`);
   }
   const el = document.createElement('div');
   el.className = `msg ${side}`;
