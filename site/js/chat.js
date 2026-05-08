@@ -259,7 +259,7 @@ async function getReply() {
         const remaining = Math.max(targetDelay - elapsed, 300);
         await sleep(remaining);
 
-        if (stillActive()) appendMsg('other', parts[i]);
+        appendMsg('other', parts[i], replySessionId);
         await addMessage(replySessionId, 'assistant', parts[i]);
         sendTime = Date.now();
       }
@@ -267,19 +267,19 @@ async function getReply() {
       if (pendingAiImage) {
         await sleep(800 + Math.random() * 1500);
         const imgContent = JSON.stringify({ text: '', image: pendingAiImage });
-        if (stillActive()) appendMsg('other', imgContent);
+        appendMsg('other', imgContent, replySessionId);
         await addMessage(replySessionId, 'assistant', imgContent);
       }
 
       if (pendingSelfie) {
         await sleep(1000 + Math.random() * 2000);
-        if (stillActive()) appendMsg('other', '[正在拍照...]');
+        appendMsg('other', '[正在拍照...]', replySessionId);
         try {
           const selfieUrl = await pendingSelfie;
           if (selfieUrl) {
             if (stillActive()) messagesEl.lastElementChild?.remove();
             const selfieContent = JSON.stringify({ text: '', image: selfieUrl });
-            if (stillActive()) appendMsg('other', selfieContent);
+            appendMsg('other', selfieContent, replySessionId);
             await addMessage(replySessionId, 'assistant', selfieContent);
           } else {
             if (stillActive()) messagesEl.lastElementChild?.remove();
@@ -303,7 +303,7 @@ async function getReply() {
       : err.message.includes('Failed to fetch') || err.message.includes('NetworkError')
         ? '网络连接失败，检查一下网络'
         : `出了点问题: ${err.message}`;
-    if (stillActive()) appendMsg('other', `[${friendlyMsg}]`);
+    appendMsg('other', `[${friendlyMsg}]`, replySessionId);
   } finally {
     isBusy = false;
   }
@@ -354,7 +354,7 @@ function scheduleProactiveCheck() {
       if (momentsReaction) {
         isBusy = true;
         await sleep(3000 + Math.random() * 5000);
-        if (currentSessionId === scheduledSessionId) appendMsg('other', momentsReaction);
+        appendMsg('other', momentsReaction, scheduledSessionId);
         await addMessage(scheduledSessionId, 'assistant', momentsReaction);
         isBusy = false;
         if (currentSessionId === scheduledSessionId) scheduleProactiveCheck();
@@ -372,7 +372,7 @@ function scheduleProactiveCheck() {
 
       if (msg) {
         await sleep(2000 + Math.random() * 3000);
-        if (currentSessionId === scheduledSessionId) appendMsg('other', msg);
+        appendMsg('other', msg, scheduledSessionId);
         await addMessage(scheduledSessionId, 'assistant', msg);
         markProactiveSent(scheduledSessionId);
       }
@@ -509,7 +509,11 @@ function sleep(ms) {
 let onMyAvatarClick = null;
 export function setMyAvatarClickHandler(fn) { onMyAvatarClick = fn; }
 
-function appendMsg(side, content) {
+function appendMsg(side, content, forSessionId = null) {
+  if (forSessionId && forSessionId !== currentSessionId) {
+    console.warn(`[appendMsg blocked] msg for session ${forSessionId}, but current is ${currentSessionId}`);
+    return;
+  }
   const el = document.createElement('div');
   el.className = `msg ${side}`;
 
