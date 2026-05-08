@@ -34,6 +34,11 @@ const btnImage = document.getElementById('btn-image');
 const btnCancelImage = document.getElementById('btn-cancel-image');
 
 export async function initChat(sessionId, mbti, gender, avatarUrl, nickname, spokesperson = false, persona = null) {
+  // 清理上一个session的异步状态，防止串台
+  if (proactiveTimer) { clearTimeout(proactiveTimer); proactiveTimer = null; }
+  if (replyDebounceTimer) { clearTimeout(replyDebounceTimer); replyDebounceTimer = null; }
+  isBusy = false;
+
   currentSessionId = sessionId;
   currentMBTI = mbti;
   currentGender = gender;
@@ -290,7 +295,7 @@ async function getReply() {
       : err.message.includes('Failed to fetch') || err.message.includes('NetworkError')
         ? '网络连接失败，检查一下网络'
         : `出了点问题: ${err.message}`;
-    appendMsg('other', `[${friendlyMsg}]`);
+    if (stillActive()) appendMsg('other', `[${friendlyMsg}]`);
   } finally {
     isBusy = false;
   }
