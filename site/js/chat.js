@@ -16,8 +16,9 @@ let currentPersona = null;
 let aiAvatarUrl = '';
 let isSpokesperson = false;
 let isBusy = false;
-let pendingImage = null; // Base64 data URL of image waiting to be sent
-let avatarChangeCount = 0; // AI 换头像次数
+let pendingImage = null;
+let avatarChangeCount = 0;
+let chatEpoch = 0; // 每次initChat递增，用于阻断旧session的异步回调
 
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
 
@@ -34,10 +35,10 @@ const btnImage = document.getElementById('btn-image');
 const btnCancelImage = document.getElementById('btn-cancel-image');
 
 export async function initChat(sessionId, mbti, gender, avatarUrl, nickname, spokesperson = false, persona = null) {
-  // 清理上一个session的异步状态，防止串台
   if (proactiveTimer) { clearTimeout(proactiveTimer); proactiveTimer = null; }
   if (replyDebounceTimer) { clearTimeout(replyDebounceTimer); replyDebounceTimer = null; }
   isBusy = false;
+  chatEpoch++; // 使所有旧的异步回调失效
 
   currentSessionId = sessionId;
   currentMBTI = mbti;
@@ -158,6 +159,7 @@ async function getReply() {
   const replyNickname = currentNickname;
   const replyPersona = currentPersona;
   const replyIsSpokesperson = isSpokesperson;
+  const replyEpoch = chatEpoch;
   let sendTime = Date.now();
 
   try {
@@ -246,8 +248,8 @@ async function getReply() {
 
       const parts = cleanReply.split('||SPLIT||').map((s) => s.trim()).filter(Boolean);
       const stillActive = () => {
-        const active = currentSessionId === replySessionId;
-        if (!active) console.warn(`[cross-talk prevented] reply for session ${replySessionId} blocked, current is ${currentSessionId}`);
+        const active = chatEpoch === replyEpoch;
+        if (!active) console.warn(`[cross-talk prevented] epoch ${replyEpoch} vs current ${chatEpoch}, session ${replySessionId} vs ${currentSessionId}`);
         return active;
       };
 
@@ -259,7 +261,7 @@ async function getReply() {
         const remaining = Math.max(targetDelay - elapsed, 300);
         await sleep(remaining);
 
-        appendMsg('other', parts[i], replySessionId);
+        appendMsg('other', parts[i], replyEpoch);
         await addMessage(replySessionId, 'assistant', parts[i]);
         sendTime = Date.now();
       }
@@ -267,19 +269,19 @@ async function getReply() {
       if (pendingAiImage) {
         await sleep(800 + Math.random() * 1500);
         const imgContent = JSON.stringify({ text: '', image: pendingAiImage });
-        appendMsg('other', imgContent, replySessionId);
+        appendMsg('other', imgContent, replyEpoch);
         await addMessage(replySessionId, 'assistant', imgContent);
       }
 
       if (pendingSelfie) {
         await sleep(1000 + Math.random() * 2000);
-        appendMsg('other', '[正在拍照...]', replySessionId);
+        appendMsg('other', '[正在拍照...]', replyEpoch);
         try {
           const selfieUrl = await pendingSelfie;
           if (selfieUrl) {
             if (stillActive()) messagesEl.lastElementChild?.remove();
             const selfieContent = JSON.stringify({ text: '', image: selfieUrl });
-            appendMsg('other', selfieContent, replySessionId);
+            appendMsg('other', selfieContent, replyEpoch);
             await addMessage(replySessionId, 'assistant', selfieContent);
           } else {
             if (stillActive()) messagesEl.lastElementChild?.remove();
@@ -303,7 +305,7 @@ async function getReply() {
       : err.message.includes('Failed to fetch') || err.message.includes('NetworkError')
         ? '网络连接失败，检查一下网络'
         : `出了点问题: ${err.message}`;
-    appendMsg('other', `[${friendlyMsg}]`, replySessionId);
+    appendMsg('other', `[${friendlyMsg}]`, replyEpoch);
   } finally {
     isBusy = false;
   }
@@ -343,21 +345,22 @@ let proactiveTimer = null;
 
 function scheduleProactiveCheck() {
   if (proactiveTimer) clearTimeout(proactiveTimer);
+  const scheduledEpoch = chatEpoch;
   const scheduledSessionId = currentSessionId;
   const scheduledMBTI = currentMBTI;
   const delay = 120000 + Math.random() * 120000;
   proactiveTimer = setTimeout(async () => {
+    if (chatEpoch !== scheduledEpoch) return;
     if (isBusy || !currentSessionId) return;
-    if (currentSessionId !== scheduledSessionId) return;
     try {
       const momentsReaction = await checkUserMomentsReaction(scheduledMBTI);
       if (momentsReaction) {
         isBusy = true;
         await sleep(3000 + Math.random() * 5000);
-        appendMsg('other', momentsReaction, scheduledSessionId);
+        appendMsg('other', momentsReaction, scheduledEpoch);
         await addMessage(scheduledSessionId, 'assistant', momentsReaction);
         isBusy = false;
-        if (currentSessionId === scheduledSessionId) scheduleProactiveCheck();
+        if (chatEpoch === scheduledEpoch) scheduleProactiveCheck();
         return;
       }
 
@@ -372,7 +375,7 @@ function scheduleProactiveCheck() {
 
       if (msg) {
         await sleep(2000 + Math.random() * 3000);
-        appendMsg('other', msg, scheduledSessionId);
+        appendMsg('other', msg, scheduledEpoch);
         await addMessage(scheduledSessionId, 'assistant', msg);
         markProactiveSent(scheduledSessionId);
       }
@@ -509,9 +512,9 @@ function sleep(ms) {
 let onMyAvatarClick = null;
 export function setMyAvatarClickHandler(fn) { onMyAvatarClick = fn; }
 
-function appendMsg(side, content, forSessionId = null) {
-  if (forSessionId && forSessionId !== currentSessionId) {
-    console.warn(`[appendMsg blocked] msg for session ${forSessionId}, but current is ${currentSessionId}`);
+function appendMsg(side, content, forEpoch = null) {
+  if (forEpoch !== null && forEpoch !== chatEpoch) {
+    console.warn(`[appendMsg blocked] epoch ${forEpoch} vs current ${chatEpoch}`);
     return;
   }
   const el = document.createElement('div');
@@ -718,6 +721,7 @@ export function clearCurrentChat() {
 export function cleanupChat() {
   if (proactiveTimer) { clearTimeout(proactiveTimer); proactiveTimer = null; }
   if (replyDebounceTimer) { clearTimeout(replyDebounceTimer); replyDebounceTimer = null; }
+  chatEpoch++;
   isBusy = false;
   currentSessionId = null;
   currentMBTI = null;
