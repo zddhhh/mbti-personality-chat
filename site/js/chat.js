@@ -153,6 +153,11 @@ async function getReply() {
   isBusy = true;
 
   const replySessionId = currentSessionId;
+  const replyMBTI = currentMBTI;
+  const replyGender = currentGender;
+  const replyNickname = currentNickname;
+  const replyPersona = currentPersona;
+  const replyIsSpokesperson = isSpokesperson;
   let sendTime = Date.now();
 
   try {
@@ -160,10 +165,9 @@ async function getReply() {
     const lastRaw = allMessages[allMessages.length - 1]?.content || '';
     const lastUserMsg = extractTextFromContent(lastRaw);
 
-    const agentState = await agentPreProcess(replySessionId, lastUserMsg, currentMBTI);
+    const agentState = await agentPreProcess(replySessionId, lastUserMsg, replyMBTI);
 
-    // 构建增强 prompt：基础人格 + 用户资料 + 记忆 + 关系状态
-    const basePrompt = generateSystemPrompt(currentMBTI, currentGender, currentNickname, isSpokesperson, currentPersona);
+    const basePrompt = generateSystemPrompt(replyMBTI, replyGender, replyNickname, replyIsSpokesperson, replyPersona);
     const userCtx = await buildUserProfileContext();
     const memoryCtx = await buildMemoryContext(replySessionId);
     const relationCtx = buildRelationshipContext(agentState);
@@ -219,7 +223,7 @@ async function getReply() {
       if (momentMatch) {
         const momentText = momentMatch[1].trim();
         cleanReply = cleanReply.replace(/\|\|MOMENT:.+?\|\|/g, '').trim();
-        addAiMoment(momentText, null, currentSessionId).catch(() => {});
+        addAiMoment(momentText, null, replySessionId).catch(() => {});
       }
 
       // 检测发自拍指令 ||SELFIE:场景||（用万相生图）
@@ -241,7 +245,11 @@ async function getReply() {
       }
 
       const parts = cleanReply.split('||SPLIT||').map((s) => s.trim()).filter(Boolean);
-      const stillActive = () => currentSessionId === replySessionId;
+      const stillActive = () => {
+        const active = currentSessionId === replySessionId;
+        if (!active) console.warn(`[cross-talk prevented] reply for session ${replySessionId} blocked, current is ${currentSessionId}`);
+        return active;
+      };
 
       for (let i = 0; i < parts.length; i++) {
         const elapsed = Date.now() - sendTime;
