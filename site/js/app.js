@@ -47,7 +47,7 @@ let bgProactiveTimer = null;
 
 async function startBackgroundProactive() {
   if (bgProactiveTimer) clearTimeout(bgProactiveTimer);
-  const delay = 120000 + Math.random() * 60000;
+  const delay = 60000 + Math.random() * 60000; // 1-2分钟检查一次（更频繁）
   bgProactiveTimer = setTimeout(async () => {
     try {
       const sessions = await getAllSessions();
