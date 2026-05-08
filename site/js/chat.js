@@ -147,19 +147,20 @@ async function send() {
 async function getReply() {
   isBusy = true;
 
+  const replySessionId = currentSessionId;
   let sendTime = Date.now();
 
   try {
-    const allMessages = await getMessagesBySession(currentSessionId);
+    const allMessages = await getMessagesBySession(replySessionId);
     const lastRaw = allMessages[allMessages.length - 1]?.content || '';
     const lastUserMsg = extractTextFromContent(lastRaw);
 
-    const agentState = await agentPreProcess(currentSessionId, lastUserMsg, currentMBTI);
+    const agentState = await agentPreProcess(replySessionId, lastUserMsg, currentMBTI);
 
     // 构建增强 prompt：基础人格 + 用户资料 + 记忆 + 关系状态
     const basePrompt = generateSystemPrompt(currentMBTI, currentGender, currentNickname, isSpokesperson, currentPersona);
     const userCtx = await buildUserProfileContext();
-    const memoryCtx = await buildMemoryContext(currentSessionId);
+    const memoryCtx = await buildMemoryContext(replySessionId);
     const relationCtx = buildRelationshipContext(agentState);
     const fullPrompt = basePrompt + userCtx + memoryCtx + relationCtx;
 
@@ -235,6 +236,7 @@ async function getReply() {
       }
 
       const parts = cleanReply.split('||SPLIT||').map((s) => s.trim()).filter(Boolean);
+      const stillActive = () => currentSessionId === replySessionId;
 
       for (let i = 0; i < parts.length; i++) {
         const elapsed = Date.now() - sendTime;
@@ -244,47 +246,43 @@ async function getReply() {
         const remaining = Math.max(targetDelay - elapsed, 300);
         await sleep(remaining);
 
-        appendMsg('other', parts[i]);
-        await addMessage(currentSessionId, 'assistant', parts[i]);
+        if (stillActive()) appendMsg('other', parts[i]);
+        await addMessage(replySessionId, 'assistant', parts[i]);
         sendTime = Date.now();
       }
 
-      // AI 发图片（在文字消息之后）
       if (pendingAiImage) {
         await sleep(800 + Math.random() * 1500);
         const imgContent = JSON.stringify({ text: '', image: pendingAiImage });
-        appendMsg('other', imgContent);
-        await addMessage(currentSessionId, 'assistant', imgContent);
+        if (stillActive()) appendMsg('other', imgContent);
+        await addMessage(replySessionId, 'assistant', imgContent);
       }
 
-      // AI 发自拍（异步生成，到了再发）
       if (pendingSelfie) {
         await sleep(1000 + Math.random() * 2000);
-        appendMsg('other', '[正在拍照...]');
+        if (stillActive()) appendMsg('other', '[正在拍照...]');
         try {
           const selfieUrl = await pendingSelfie;
           if (selfieUrl) {
-            messagesEl.lastElementChild?.remove();
+            if (stillActive()) messagesEl.lastElementChild?.remove();
             const selfieContent = JSON.stringify({ text: '', image: selfieUrl });
-            appendMsg('other', selfieContent);
-            await addMessage(currentSessionId, 'assistant', selfieContent);
+            if (stillActive()) appendMsg('other', selfieContent);
+            await addMessage(replySessionId, 'assistant', selfieContent);
           } else {
-            messagesEl.lastElementChild?.remove();
+            if (stillActive()) messagesEl.lastElementChild?.remove();
           }
         } catch {
-          messagesEl.lastElementChild?.remove();
+          if (stillActive()) messagesEl.lastElementChild?.remove();
         }
       }
 
-      if (shouldChangeAvatar) {
+      if (shouldChangeAvatar && stillActive()) {
         changeAiAvatar(avatarChangeDesc);
       }
 
-      // Agent 后处理
-      await agentPostProcess(currentSessionId, cleanReply);
+      await agentPostProcess(replySessionId, cleanReply);
 
-      // 检查是否应该发主动消息（延迟检查）
-      scheduleProactiveCheck();
+      if (stillActive()) scheduleProactiveCheck();
     }
   } catch (err) {
     const friendlyMsg = err.message.includes('超时')
@@ -332,36 +330,38 @@ let proactiveTimer = null;
 
 function scheduleProactiveCheck() {
   if (proactiveTimer) clearTimeout(proactiveTimer);
+  const scheduledSessionId = currentSessionId;
+  const scheduledMBTI = currentMBTI;
   const delay = 120000 + Math.random() * 120000;
   proactiveTimer = setTimeout(async () => {
     if (isBusy || !currentSessionId) return;
+    if (currentSessionId !== scheduledSessionId) return;
     try {
-      // 优先检查用户朋友圈
-      const momentsReaction = await checkUserMomentsReaction(currentMBTI);
+      const momentsReaction = await checkUserMomentsReaction(scheduledMBTI);
       if (momentsReaction) {
         isBusy = true;
         await sleep(3000 + Math.random() * 5000);
-        appendMsg('other', momentsReaction);
-        await addMessage(currentSessionId, 'assistant', momentsReaction);
+        if (currentSessionId === scheduledSessionId) appendMsg('other', momentsReaction);
+        await addMessage(scheduledSessionId, 'assistant', momentsReaction);
         isBusy = false;
-        scheduleProactiveCheck();
+        if (currentSessionId === scheduledSessionId) scheduleProactiveCheck();
         return;
       }
 
-      const should = await shouldSendProactiveMessage(currentSessionId, currentMBTI);
+      const should = await shouldSendProactiveMessage(scheduledSessionId, scheduledMBTI);
       if (!should) return;
 
       isBusy = true;
       const { getAgentState } = await import('./storage.js');
-      const state = await getAgentState(currentSessionId);
-      const starters = buildProactivePrompt(state, currentMBTI);
+      const state = await getAgentState(scheduledSessionId);
+      const starters = buildProactivePrompt(state, scheduledMBTI);
       const msg = starters[Math.floor(Math.random() * starters.length)];
 
       if (msg) {
         await sleep(2000 + Math.random() * 3000);
-        appendMsg('other', msg);
-        await addMessage(currentSessionId, 'assistant', msg);
-        markProactiveSent(currentSessionId);
+        if (currentSessionId === scheduledSessionId) appendMsg('other', msg);
+        await addMessage(scheduledSessionId, 'assistant', msg);
+        markProactiveSent(scheduledSessionId);
       }
     } catch {
       // ignore
