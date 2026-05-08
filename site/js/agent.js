@@ -143,17 +143,8 @@ export async function shouldSendProactiveMessage(sessionId, mbti) {
 
   const rec = getProactiveRecord(sessionId);
 
-  // 连续主动发消息未回复的上限——E人更能忍受冷落，I人更敏感
-  const type = (mbti || 'ESTJ').toUpperCase();
-  const maxUnanswered = type[0] === 'E' ? 4 : 3;
-  if (rec.unanswered >= maxUnanswered) {
-    // 超过上限后进入长冷却期，而不是永远放弃
-    const cooldownAfterIgnored = 30 * 60 * 1000; // 30分钟后重置
-    if (Date.now() - rec.lastSentAt > cooldownAfterIgnored) {
-      rec.unanswered = 0; // 重置计数，过一段时间再试
-    }
-    return false;
-  }
+  // 主动发了消息用户没回 → 不再主动发，等用户回复后才重置
+  if (rec.unanswered >= 1) return false;
 
   const now = Date.now();
   const idleTime = now - state.lastActiveAt;
